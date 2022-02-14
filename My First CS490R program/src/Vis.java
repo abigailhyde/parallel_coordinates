@@ -29,12 +29,26 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.drawLine(50,40,50,getHeight() - 75); //draw vertical axis
-        g.drawLine(50,getHeight() - 75, getWidth() - 50,getHeight() - 75); //draw horizontal axis
 
+        super.paintComponent(g);
         verticalLength = (getHeight() - 75) - 40;
         horizontalLength = (getWidth() - 50) - 50;
+
+        if (table == 2012) {
+
+            //draw six lines
+            for (int i = 0; i < 6; i++) {
+                int x = (int) (i * (getWidth() / 5.25) + 15);
+                g.drawLine(x, 10, x, getHeight() - 10);
+            }
+        } else if (table == 2019) {
+
+            //draw eight lines
+            for (int i = 0; i < 8; i++) {
+                int x = (int) (i * (getWidth() / 7.25) + 15);
+                g.drawLine(x, 10, x, getHeight() - 10);
+            }
+        }
 
         if (box != null) {
 
