@@ -4,22 +4,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
 
 public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
-    public static int table;
-    public float yMax; public float yMin; public float xMax; public float xMin;
     public static boolean collision;
     public float verticalLength; public float horizontalLength;
     private Rectangle box;
-    private Student mouseDown;
+    //private Entry mouseDown;
 
     public Vis() {
 
-        table = 2012; //default table is 2012
-
         addMouseListener(this);
         addMouseMotionListener(this);
+
     }
 
     @Override
@@ -34,21 +32,65 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
         verticalLength = (getHeight() - 75) - 40;
         horizontalLength = (getWidth() - 50) - 50;
 
-        if (table == 2012) {
+        //draw lines and labels below them
+        for (int i = 0; i < Main.getAxes().size(); i++) {
 
-            //draw six lines
-            for (int i = 0; i < 6; i++) {
-                int x = (int) (i * (getWidth() / 5.25) + 15);
-                g.drawLine(x, 10, x, getHeight() - 10);
-            }
-        } else if (table == 2019) {
+            int x = (int) (i * (getWidth() / Main.getAxes().size() - 0.5) + 50);
+            g.setColor(Color.BLACK);
+            g.drawLine(x, 10, x, getHeight() - 20);
+            g.drawString(Main.getAxes().get(i).columnName, x, getHeight()-5);
+            if (Main.getAxes().get(i).type == Axis.ColumnType.NUMERIC) {
 
-            //draw eight lines
-            for (int i = 0; i < 8; i++) {
-                int x = (int) (i * (getWidth() / 7.25) + 15);
-                g.drawLine(x, 10, x, getHeight() - 10);
+                for (int j = 0; j < Main.getAxes().get(i).numberData.size(); j++) {
+
+                    DecimalFormat df = new DecimalFormat("###.##");
+                    g.setColor(Color.RED);
+                    g.drawString(df.format(Main.getAxes().get(i).numberData.get(j)),x+2,(getHeight() - 20 - 10)*(4-j)/4+10);
+                }
+            } else if (Main.getAxes().get(i).type == Axis.ColumnType.TEXT) {
+
+                for (int j = 0; j < Main.getAxes().get(i).stringData.size(); j++) {
+
+                    g.setColor(Color.RED);
+                    g.drawString(Main.getAxes().get(i).stringData.get(j),x+2,(getHeight() - 20 - 10)*(j+1)/(Main.getAxes().get(i).stringData.size()+1)+10);
+                    Main.getAxes().get(i).addStringPoint(Main.getAxes().get(i).stringData.get(j), new Point(x,(getHeight() - 20 - 10)*(j+1)/(Main.getAxes().get(i).stringData.size()+1)+10));
+                }
             }
         }
+
+        //draw poly line for each entry
+        for (Entry e: Main.entries) {
+
+            e.calcPolyLine(Main.getAxes(),getWidth(),getHeight());
+            e.draw(g);
+        }
+
+        //draw lines and labels below them
+        for (int i = 0; i < Main.getAxes().size(); i++) {
+
+            int x = (int) (i * (getWidth() / Main.getAxes().size() - 0.5) + 50);
+            g.setColor(Color.BLACK);
+            g.drawLine(x, 10, x, getHeight() - 20);
+            g.drawString(Main.getAxes().get(i).columnName, x, getHeight()-5);
+            if (Main.getAxes().get(i).type == Axis.ColumnType.NUMERIC) {
+
+                for (int j = 0; j < Main.getAxes().get(i).numberData.size(); j++) {
+
+                    DecimalFormat df = new DecimalFormat("###.##");
+                    g.setColor(Color.RED);
+                    g.drawString(df.format(Main.getAxes().get(i).numberData.get(j)),x+2,(getHeight() - 20 - 10)*(4-j)/4+10);
+                }
+            } else if (Main.getAxes().get(i).type == Axis.ColumnType.TEXT) {
+
+                for (int j = 0; j < Main.getAxes().get(i).stringData.size(); j++) {
+
+                    g.setColor(Color.RED);
+                    g.drawString(Main.getAxes().get(i).stringData.get(j),x+2,(getHeight() - 20 - 10)*(j+1)/(Main.getAxes().get(i).stringData.size()+1)+10);
+                    Main.getAxes().get(i).addStringPoint(Main.getAxes().get(i).stringData.get(j), new Point(x,(getHeight() - 20 - 10)*(j+1)/(Main.getAxes().get(i).stringData.size()+1)+10));
+                }
+            }
+        }
+
 
         if (box != null) {
 
@@ -69,7 +111,6 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
 
         int x = e.getX();
         int y = e.getY();
-        mouseDown = new Student(x,y);
         box = new Rectangle();
     }
 
@@ -93,7 +134,7 @@ public class Vis extends JPanel implements ActionListener, MouseInputListener {
     @Override
     public void mouseDragged(MouseEvent e) {
 
-        box.setFrameFromDiagonal(mouseDown.x, mouseDown.y, e.getX(), e.getY());
+        //box.setFrameFromDiagonal(mouseDown.x, mouseDown.y, e.getX(), e.getY());
         repaint();
     }
 

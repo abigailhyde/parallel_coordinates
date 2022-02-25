@@ -2,22 +2,32 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
-import java.util.Hashtable;
+import java.util.ArrayList;
 
 public class Main extends JFrame {
 
     private final Vis contents;
-    public static Hashtable<Integer, Student> students = new Hashtable<>();
+    public static ArrayList<Entry> entries = new ArrayList<>();
+    public static int NumOfCol;
+    public static ArrayList<Axis> axes;
+    public ArrayList<String> yAxis;
 
     public Main() {
+        NumOfCol = 0;
+        axes = new ArrayList<>();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000,400);
+        setSize(1300,700);
         contents = new Vis();
         setContentPane(contents);
-        setTitle("Line Charts and Bar Charts");
+        setTitle("Parallel Coordinates");
         var abigail = createMenu();
         setJMenuBar(abigail);
         setVisible(true);
+    }
+
+
+    public static ArrayList<Axis> getAxes() {
+        return axes;
     }
 
     private JMenuBar createMenu() {
@@ -31,8 +41,8 @@ public class Main extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                System.out.println("2012 selected");
-                Vis.table = 2012;
+                entries = new ArrayList<>();
+                axes = new ArrayList<>();
                 try {
 
                     Connection conn = DriverManager.getConnection("jdbc:derby:/home/abigail/database/pollster");
@@ -41,17 +51,69 @@ public class Main extends JFrame {
                     //query herey
                     ResultSet query = stmt.executeQuery("SELECT gpa, credits_attempted, credits_passed, current_credits, age, gender FROM cis2012");
 
-                    int i = 0;
                     while (query.next()) {
 
                         // add row to hashtable
-                        students.put(i, new Student(query.getFloat(1),query.getFloat(2),query.getFloat(3),query.getFloat(4),query.getFloat(5),query.getString(6)));
-                        i++;
+                        entries.add(new Entry(query.getFloat(1),query.getFloat(2),query.getFloat(3),query.getFloat(4),query.getFloat(5),query.getString(6)));
+                    }
+
+                    //gets number of lines to draw, should be 6
+                    String quer="SELECT * FROM cis2012 where 1=2";
+                    ResultSet rs=  stmt.executeQuery(quer);
+                    ResultSetMetaData rsmd = rs.getMetaData();
+                    NumOfCol=rsmd.getColumnCount();
+
+                    for (int m = 1; m <= NumOfCol; m++) {
+
+                        int type = rsmd.getColumnType(m);
+                        if (type == 8) { //for some reason a float is 8... don't ask me why
+
+                            String name = rsmd.getColumnName(m);
+
+                            String q = "SELECT MAX(" + name + ") FROM cis2012";
+                            ResultSet rq =  stmt.executeQuery(q);
+                            rq.next();
+                            float max = rq.getFloat(1);
+
+                            String o = "SELECT MIN(" + name + ") FROM cis2012";
+                            ResultSet ro = stmt.executeQuery(o);
+                            ro.next();
+                            int min = ro.getInt(1);
+
+                            axes.add(new Axis(name, max, min));
+                        } else if (type == 4){ //integer
+
+                            String name = rsmd.getColumnName(m);
+
+                            String q = "SELECT MAX(" + name + ") FROM cis2012";
+                            ResultSet rq = stmt.executeQuery(q);
+                            rq.next();
+                            int max = rq.getInt(1);
+
+                            String o = "SELECT MIN(" + name + ") FROM cis2012";
+                            ResultSet ro = stmt.executeQuery(o);
+                            ro.next();
+                            int min = ro.getInt(1);
+
+                            axes.add(new Axis(name, max, min));
+                        } else { //string
+
+                            yAxis = new ArrayList<>();
+                            String name = rsmd.getColumnName(m);
+                            String q = "SELECT DISTINCT " + name + " FROM cis2012";
+                            ResultSet rq = stmt.executeQuery(q);
+
+                            while (rq.next()) {
+
+                                yAxis.add(rq.getString(1));
+                            }
+
+                            axes.add(new Axis(name, yAxis));
+                        }
                     }
 
                     contents.repaint();
                     conn.close();
-
                 } catch (SQLException throwables) {
 
                     throwables.printStackTrace();
@@ -65,8 +127,8 @@ public class Main extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
 
-                System.out.println("2019 selected");
-                Vis.table = 2019;
+                entries = new ArrayList<>();
+                axes = new ArrayList<>();
                 try {
 
                     Connection conn = DriverManager.getConnection("jdbc:derby:/home/abigail/database/pollster");
@@ -75,17 +137,70 @@ public class Main extends JFrame {
                     //query herey
                     ResultSet query = stmt.executeQuery("SELECT gender, agegroup, credits_attempted, credits_passed, gpa, gradyear, home, major FROM cis2019");
 
-                    int i = 0;
                     while (query.next()) {
 
                         // add row to hashtable
-                        students.put(i, new Student(query.getString(1), query.getString(2), query.getFloat(3), query.getFloat(4), query.getFloat(5), query.getInt(6), query.getString(7), query.getString(8)));
-                        i++;
+                        entries.add(new Entry(query.getString(1), query.getString(2), query.getFloat(3), query.getFloat(4), query.getFloat(5), query.getInt(6), query.getString(7), query.getString(8)));
+                    }
+
+                    //gets number of lines to draw, should be 6
+                    String quer="SELECT * FROM cis2019 where 1=2";
+
+                    ResultSet rs=  stmt.executeQuery(quer);
+                    ResultSetMetaData rsmd = rs.getMetaData();
+                    NumOfCol=rsmd.getColumnCount();
+
+                    for (int m = 1; m <= NumOfCol; m++) {
+
+                        int type = rsmd.getColumnType(m);
+                        if (type == 8) { //for some reason a float is 8... don't ask me why
+
+                            String name = rsmd.getColumnName(m);
+
+                            String q = "SELECT MAX(" + name + ") FROM cis2019";
+                            ResultSet rq =  stmt.executeQuery(q);
+                            rq.next();
+                            float max = rq.getFloat(1);
+
+                            String o = "SELECT MIN(" + name + ") FROM cis2019";
+                            ResultSet ro = stmt.executeQuery(o);
+                            ro.next();
+                            int min = ro.getInt(1);
+
+                            axes.add(new Axis(name, max, min));
+                        } else if (type == 4){ //integer
+
+                            String name = rsmd.getColumnName(m);
+
+                            String q = "SELECT MAX(" + name + ") FROM cis2019";
+                            ResultSet rq = stmt.executeQuery(q);
+                            rq.next();
+                            int max = rq.getInt(1);
+
+                            String o = "SELECT MIN(" + name + ") FROM cis2019";
+                            ResultSet ro = stmt.executeQuery(o);
+                            ro.next();
+                            int min = ro.getInt(1);
+
+                            axes.add(new Axis(name, max, min));
+                        } else { //string
+
+                            yAxis = new ArrayList<>();
+                            String name = rsmd.getColumnName(m);
+                            String q = "SELECT DISTINCT " + name + " FROM cis2019";
+                            ResultSet rq = stmt.executeQuery(q);
+
+                            while (rq.next()) {
+
+                                yAxis.add(rq.getString(1));
+                            }
+
+                            axes.add(new Axis(name, yAxis));
+                        }
                     }
 
                     contents.repaint();
                     conn.close();
-
                 } catch (SQLException throwables) {
 
                     throwables.printStackTrace();
