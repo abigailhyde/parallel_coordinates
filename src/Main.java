@@ -11,22 +11,26 @@ public class Main extends JFrame {
     public static int NumOfCol;
     public static ArrayList<Axis> axes;
     public ArrayList<String> yAxis;
+    public static boolean sparkly;
 
     public Main() {
+
         NumOfCol = 0;
         axes = new ArrayList<>();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1300,700);
         contents = new Vis();
         setContentPane(contents);
-        setTitle("Parallel Coordinates");
+        setTitle("parallel coordinates uwu");
         var abigail = createMenu();
         setJMenuBar(abigail);
         setVisible(true);
+        sparkly = false;
     }
 
 
     public static ArrayList<Axis> getAxes() {
+
         return axes;
     }
 
@@ -34,6 +38,8 @@ public class Main extends JFrame {
 
         JMenuBar mb = new JMenuBar();
         JMenu file = new JMenu("Table");
+        JMenu bonus = new JMenu("Bonus");
+        JMenu sparkles = new JMenu("Sparkles?");
 
         JMenuItem twelve = new JMenuItem("2012"); //queries done :)
         twelve.addActionListener(new ActionListener() {
@@ -53,7 +59,7 @@ public class Main extends JFrame {
 
                     while (query.next()) {
 
-                        // add row to hashtable
+                        // add row to arrayList
                         entries.add(new Entry(query.getFloat(1),query.getFloat(2),query.getFloat(3),query.getFloat(4),query.getFloat(5),query.getString(6)));
                     }
 
@@ -208,10 +214,52 @@ public class Main extends JFrame {
             }
         });
 
+        JMenuItem reset = new JMenuItem("Reset"); //queries done :)
+        reset.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                for (Entry r : Main.entries) {
+                    r.selected = false;
+                    r.selection = false;
+                    r.hover = false;
+                }
+                contents.repaint();
+            }
+        });
+
+        JMenuItem yesSparkles = new JMenuItem("Yes!!!!");
+        yesSparkles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                contents.sparkleOn();
+                contents.repaint();
+                System.out.println("Sparkles selected.");
+            }
+        });
+
+        JMenuItem noSparkles = new JMenuItem("No >:(");
+        noSparkles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                contents.sparkleOff();
+                contents.repaint();
+                System.out.println("No sparkles selected.");
+            }
+        });
+
+
         //adding questions to the menu bar
         file.add(twelve);
         file.add(nineteen);
         mb.add(file);
+        bonus.add(reset);
+        mb.add(bonus);
+        sparkles.add(yesSparkles);
+        sparkles.add(noSparkles);
+        mb.add(sparkles);
+
 
         return mb;
     }
